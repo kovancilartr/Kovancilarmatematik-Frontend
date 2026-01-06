@@ -37,6 +37,15 @@ export interface RefreshTokenRequest {
   refreshToken: string;
 }
 
+export interface RefreshTokenResponse {
+  success: boolean;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+  message: string;
+}
+
 // New interfaces
 export interface SiteSettings {
   id: string;
@@ -237,15 +246,19 @@ class ApiClient {
     return response;
   }
 
-  async refreshToken(refreshToken: string): Promise<ApiResponse<unknown>> {
-    const response = await this.request("/auth/refresh", {
+  async refreshToken(
+    refreshToken: string
+  ): Promise<ApiResponse<RefreshTokenResponse>> {
+    const response = await this.request<RefreshTokenResponse>("/auth/refresh", {
       method: "POST",
       body: JSON.stringify({ refreshToken }),
     });
     console.log("Auth Refresh Response:" + response);
-    if (response.success && response.data?.tokens.accessToken) {
-      this.setAccessToken(response.data.tokens.accessToken);
-    }
+
+    // TODO : Burası hata veriyor bunu yapay zekaya soracam sanki burda set etmek gerekmiyor auth-context-provider.tsx içinde ediyoruz gibi geldi bana
+    // if (response.success && response.data?.tokens.accessToken) {
+    //   this.setAccessToken(response.data.tokens.accessToken);
+    // }
     return response;
   }
 

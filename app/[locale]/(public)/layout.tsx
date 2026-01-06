@@ -6,7 +6,7 @@ import React from "react";
 
 type LayoutProps = {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 };
 
 export function generateStaticParams() {
@@ -15,15 +15,15 @@ export function generateStaticParams() {
 
 const LocaleLayout = async ({ children, params }: LayoutProps) => {
   const { locale } = await params;
-  const dict = await getDictionary(locale);
+  const dict = await getDictionary(locale as Locale);
 
   return (
     <div>
-      <SiteHeader dict={dict} locale={locale} />
+      <SiteHeader dict={dict} locale={locale as Locale} />
 
       {children}
 
-      <SiteFooter dict={dict} locale={locale} />
+      <SiteFooter dict={dict} locale={locale as Locale} />
     </div>
   );
 };

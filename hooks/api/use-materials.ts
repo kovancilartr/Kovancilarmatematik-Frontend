@@ -72,7 +72,7 @@ export const useUpdateMaterial = () => {
 
 export const useDeleteMaterial = () => {
   const queryClient = useQueryClient();
-  return useMutation<null, Error, string>({
+  return useMutation<any, Error, string>({
     mutationFn: async (materialId) => {
       const response = await apiClient.deleteMaterial(materialId);
       if (!response.success) {
