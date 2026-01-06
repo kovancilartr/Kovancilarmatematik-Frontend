@@ -1,0 +1,1 @@
+export type Dict = Awaited<ReturnType<typeof import("@/lib/dictionaries").getDictionary>>;

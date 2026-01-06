@@ -1,0 +1,28 @@
+{
+  "site": {
+    "title": "Easy Start",
+    "description": "This is an example English homepage."
+  },
+    "nav": {
+    "home": "Home",
+    "videos": "Videos",
+    "archive": "Archive",
+    "tags": "Tags",
+    "about": "About",
+    "login": "Login",
+    "profile": "Profile",
+    "dashboard": "Admin Panel"
+  },
+    "footer": {
+    "recentPostsTitle": "Recent Posts",
+    "menuTitle": "Menu",
+    "pagesTitle": "Pages",
+    "pages": {
+      "about": "About",
+      "contact": "Contact",
+      "admin": "Admin Panel"
+    },
+    "copyrightPrefix": "All Rights Reserved.",
+    "publishedWith": "Published with"
+  }
+}

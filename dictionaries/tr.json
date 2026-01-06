@@ -1,0 +1,28 @@
+{
+  "site": {
+    "title": "Kovancılar Matematik",
+    "description": "Matematiği sevdiren, başarıya odaklı dijital öğrenme platformu. Sınavlara hazırlıkta yanındayız."
+  },
+  "nav": {
+    "home": "Ana Sayfa",
+    "videos": "Videolar",
+    "archive": "Arşiv",
+    "tags": "Etiketler",
+    "about": "Hakkımda",
+    "login": "Giriş Yap",
+    "profile": "Profil",
+    "dashboard": "Yönetim Paneli"
+  },
+   "footer": {
+    "recentPostsTitle": "Son Yazılar",
+    "menuTitle": "Menü",
+    "pagesTitle": "Sayfalar",
+    "pages": {
+      "about": "Hakkımda",
+      "contact": "İletişim",
+      "admin": "Yönetim Paneli"
+    },
+    "copyrightPrefix": "Tüm hakları saklıdır.",
+    "publishedWith": "Yayın altyapısı"
+  }
+}
