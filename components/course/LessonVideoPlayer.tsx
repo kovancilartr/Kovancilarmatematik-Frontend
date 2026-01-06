@@ -98,9 +98,39 @@ export function LessonVideoPlayer({ videoUrl }: LessonVideoPlayerProps) {
           const player = new Plyr(plyrElement, defaultPlyrOptions);
           playerInstanceRef.current = player;
 
-          // 4. Attach event listeners.
+          // 4. Attach event listeners and inject a custom overlay
           player.on("ready", () => {
             setIsVideoLoading(false);
+
+            // This is the main .plyr container
+            const playerContainer = player.elements.container; 
+            const videoWrapper = playerContainer.querySelector(
+              ".plyr__video-wrapper"
+            );
+
+            if (playerContainer && videoWrapper) {
+              const overlay = document.createElement("div");
+              overlay.style.position = "absolute";
+              overlay.style.top = "0";
+              overlay.style.left = "0";
+              overlay.style.width = "100%";
+              overlay.style.height = "100%";
+              // z-index: 1 places it above the base video, but below the
+              // overlaid play button (z-index: 2) and controls (z-index: 3)
+              overlay.style.zIndex = "1";
+
+              overlay.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+              });
+
+              // Restore click-to-play functionality on the video area
+              overlay.addEventListener("click", () => {
+                player.togglePlay();
+              });
+
+              // Insert the overlay as a sibling BEFORE the video wrapper
+              playerContainer.insertBefore(overlay, videoWrapper);
+            }
           });
         }
       } else {
@@ -127,7 +157,9 @@ export function LessonVideoPlayer({ videoUrl }: LessonVideoPlayerProps) {
   }, [videoUrl]);
 
   return (
-    <div className="w-full relative aspect-video bg-black rounded-lg overflow-hidden">
+    <div
+      className="w-full relative aspect-video bg-black rounded-lg overflow-hidden"
+    >
       {isVideoLoading && (
         <div className="absolute inset-0 bg-muted flex items-center justify-center z-10">
           <Loader2 className="w-12 h-12 animate-spin text-muted-foreground" />
@@ -140,6 +172,47 @@ export function LessonVideoPlayer({ videoUrl }: LessonVideoPlayerProps) {
           <p className="font-medium">Geçersiz Video Kaynağı</p>
         </div>
       )}
+
+      {/* 
+        This is a two-part overlay to prevent right-clicks on the video 
+        without blocking the controls at the bottom.
+
+        1. The outer div is a full-size overlay that is transparent to all clicks (`pointer-events: none`).
+           This ensures that if the sizing of the inner div is wrong, clicks can still reach the controls.
+        2. The inner div re-enables pointer events for itself (`pointer-events: auto`) and covers
+           most of the video area, but leaves space at the bottom for the controls. We assume the
+           controls are 50px high.
+      */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 10, // This outer div is transparent to events
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute', // Explicitly positioning the inner div
+            top: 0,
+            left: 0,
+            width: '100%',
+            // Assumes the control bar is 50px high. Adjust if needed.
+            height: 'calc(100% - 50px)',
+            pointerEvents: 'auto', // This inner div captures events
+            // Set z-index to 1, to be below Plyr's overlaid controls (z-index 2)
+            // but still above the base video element.
+            zIndex: 1,
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+          }}
+        />
+      </div>
+
 
       {/* This div is the container where Plyr will mount the video player. */}
       <div ref={videoContainerRef} className="w-full h-full" />
