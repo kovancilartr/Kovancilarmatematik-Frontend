@@ -2,7 +2,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, Category } from "@/lib/api";
+import {
+  apiClient,
+  Category,
+  CreateCategoryPayload,
+  UpdateCategoryPayload,
+} from "@/lib/api";
 
 // --- Queries ---
 
@@ -50,10 +55,7 @@ export const useGetCategoryById = (id: string) => {
 /**
  * Create a new category
  */
-const createCategory = async (newCategoryData: {
-  name: string;
-  order: number;
-}): Promise<Category> => {
+const createCategory = async (newCategoryData: CreateCategoryPayload): Promise<Category> => {
   const response = await apiClient.createCategory(newCategoryData);
   if (!response.success || !response.data) {
     throw new Error(response.error?.message || "Failed to create category.");
@@ -63,7 +65,7 @@ const createCategory = async (newCategoryData: {
 
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation<Category, Error, { name: string; order: number }>({
+  return useMutation<Category, Error, CreateCategoryPayload>({
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -79,7 +81,7 @@ const updateCategory = async ({
   data,
 }: {
   id: string;
-  data: Partial<Category>;
+  data: UpdateCategoryPayload;
 }): Promise<Category> => {
   const response = await apiClient.updateCategory(id, data);
   if (!response.success || !response.data) {
@@ -90,7 +92,7 @@ const updateCategory = async ({
 
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation<Category, Error, { id: string; data: Partial<Category> }>({
+  return useMutation<Category, Error, { id: string; data: UpdateCategoryPayload }>({
     mutationFn: updateCategory,
     onSuccess: (data, variables) => {
       // Invalidate the list of all categories and the specific category query

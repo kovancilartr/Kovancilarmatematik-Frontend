@@ -16,8 +16,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             gcTime: 10 * 60 * 1000,
             // Retry failed requests 3 times
             retry: (failureCount, error: any) => {
-              // Don't retry on 401 (unauthorized) errors
-              if (error?.response?.status === 401) {
+              // Don't retry on 401, 403, 404
+              const status = error?.response?.status || error?.status;
+              if (status === 401 || status === 403 || status === 404) {
                 return false;
               }
               return failureCount < 3;

@@ -64,11 +64,11 @@ export default function AdminSubjectsPage() {
 
   useEffect(() => {
     if (isError && error) {
-      toast.error(`Kazanımlar yüklenemedi: ${error.message}`);
+      toast.error(`Konular yüklenemedi: ${error.message}`);
     }
   }, [isError, error]);
 
-  const filteredData = useMemo(() => 
+  const filteredData = useMemo(() =>
     subjects.filter(
       (subject) =>
         subject.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,7 +103,7 @@ export default function AdminSubjectsPage() {
           className="font-black text-xs uppercase tracking-widest p-0 hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          KAZANIM ADI
+          KONU ADI
           <ArrowUpDown className="ml-2 h-3 w-3" />
         </Button>
       ),
@@ -179,7 +179,7 @@ export default function AdminSubjectsPage() {
                     <span className="font-bold text-foreground">
                       {subject.name}
                     </span>{" "}
-                    kazanımı silinecektir. Bu işlem geri alınamaz.
+                    konusu silinecektir. Bu işlem geri alınamaz.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="mt-6 gap-3">
@@ -191,7 +191,7 @@ export default function AdminSubjectsPage() {
                     onClick={() =>
                       deleteSubject(subject.id, {
                         onSuccess: () =>
-                          toast.success("Kazanım başarıyla silindi!"),
+                          toast.success("Konu başarıyla silindi!"),
                         onError: (error) =>
                           toast.error(`Hata: ${error.message}`),
                       })
@@ -201,7 +201,7 @@ export default function AdminSubjectsPage() {
                     {isDeleting && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Kazanımı Sil
+                    Konuyu Sil
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -210,7 +210,7 @@ export default function AdminSubjectsPage() {
         );
       },
     },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -235,15 +235,15 @@ export default function AdminSubjectsPage() {
             İçerik Yönetimi
           </Badge>
           <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-tight flex items-center gap-3">
-            Kazanımlar
+            Konular
           </h1>
           <p className="text-muted-foreground mt-2 font-medium">
-            Ders içeriklerini ve kazanım hedeflerini buradan yapılandırın.
+            Ders içeriklerini ve konuları buradan yönetin.
           </p>
         </div>
         <UpsertSubjectModal>
           <Button className="rounded-2xl h-14 px-8 font-black gap-2 shadow-xl shadow-primary/20 text-base">
-            <Plus className="w-5 h-5" /> Yeni Kazanım Ekle
+            <Plus className="w-5 h-5" /> Yeni Konu Ekle
           </Button>
         </UpsertSubjectModal>
       </div>
@@ -253,7 +253,7 @@ export default function AdminSubjectsPage() {
           <div className="relative group max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Kazanımlarda veya kategorilerde ara..."
+              placeholder="Konularda veya kategorilerde ara..."
               className="h-12 pl-11 rounded-xl bg-muted/30 border-border/50 focus-visible:ring-primary/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -279,9 +279,9 @@ export default function AdminSubjectsPage() {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -312,7 +312,7 @@ export default function AdminSubjectsPage() {
                       >
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <GraduationCap className="w-10 h-10 opacity-20" />
-                          <span className="font-bold">Kazanım bulunamadı.</span>
+                          <span className="font-bold">Konu bulunamadı.</span>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -51,13 +51,25 @@ export default function CourseOverviewPage() {
   if (isLoading) return <GlobalLoading />;
 
   if (isError) {
+    const isForbidden = (error as any)?.status === 403;
+
     return (
       <div className="flex flex-col justify-center items-center h-[60vh] text-center px-4">
-        <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
-          <AlertCircle className="h-10 w-10 text-destructive" />
+        <div className={`w-20 h-20 ${isForbidden ? 'bg-orange-500/10' : 'bg-destructive/10'} rounded-full flex items-center justify-center mb-6`}>
+          {isForbidden ? (
+            <Lock className="h-10 w-10 text-orange-500" />
+          ) : (
+            <AlertCircle className="h-10 w-10 text-destructive" />
+          )}
         </div>
-        <h2 className="text-2xl font-bold mb-2">Kurs yüklenemedi</h2>
-        <p className="text-muted-foreground max-w-xs">{error.message}</p>
+        <h2 className="text-2xl font-bold mb-2">
+          {isForbidden ? "Erişim Yetkiniz Yok" : "Kurs yüklenemedi"}
+        </h2>
+        <p className="text-muted-foreground max-w-sm">
+          {isForbidden
+            ? "Maalesef bu kursa erişim yetkiniz bulunmamaktadır. Erişim sağlamak için yönetici ile iletişime geçebilirsiniz."
+            : error.message}
+        </p>
         <Link
           href="/"
           className={cn(

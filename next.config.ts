@@ -2,10 +2,19 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    unoptimized: process.env.NODE_ENV === 'development', // Only in dev
     remotePatterns: [
       {
         protocol: "https",
         hostname: "placehold.co",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
         port: "",
         pathname: "/**",
       },
@@ -33,9 +42,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${
-          process.env.BACKEND_API_URL || "http://localhost:3001/api"
-        }/:path*`,
+        destination: `${process.env.BACKEND_API_URL || "http://localhost:3001/api"
+          }/:path*`,
       },
     ];
   },

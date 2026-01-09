@@ -121,6 +121,58 @@ export default function AdminCategoriesPage() {
         ),
       },
       {
+        accessorKey: "status",
+        header: "DURUM",
+        cell: ({ row }) => {
+          const isPublished = row.original.isPublished;
+          return (
+            <Badge
+              variant={isPublished ? "default" : "secondary"}
+              className={`${isPublished
+                ? "bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border-emerald-200"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-200 border-slate-200"
+                } font-bold`}
+            >
+              {isPublished ? "Yayında" : "Taslak"}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "access",
+        header: "ERİŞİM",
+        cell: ({ row }) => {
+          const isPublic = row.original.isPublic;
+          return (
+            <Badge
+              variant="outline"
+              className={`${isPublic
+                ? "bg-blue-500/10 text-blue-600 border-blue-200"
+                : "bg-amber-500/10 text-amber-600 border-amber-200"
+                } font-bold`}
+            >
+              {isPublic ? "Herkese Açık" : "Özel (Private)"}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "students",
+        header: "ÖĞRENCİ",
+        cell: ({ row }) => {
+          const isPublic = row.original.isPublic;
+          const count = row.original._count?.allowedUsers || 0;
+
+          if (isPublic) return <span className="text-muted-foreground text-xs font-medium">-</span>;
+
+          return (
+            <Badge variant="secondary" className="font-bold bg-muted/50">
+              {count} Öğrenci
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         cell: ({ row }) => {
           const category = row.original;
@@ -259,9 +311,9 @@ export default function AdminCategoriesPage() {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>

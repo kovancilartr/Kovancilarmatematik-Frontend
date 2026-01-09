@@ -20,15 +20,31 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: "ADMIN" | "TEACHER" | "STUDENT";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateUserPayload {
+  email: string;
+  name: string;
+  password?: string;
+  role: "ADMIN" | "TEACHER" | "STUDENT";
+}
+
+export interface UpdateUserPayload {
+  email?: string;
+  name?: string;
+  password?: string;
+  role?: "ADMIN" | "TEACHER" | "STUDENT";
+}
+
 export interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    createdAt: string;
-    updatedAt: string;
-  };
+  user: User;
   accessToken: string;
   refreshToken: string;
 }
@@ -82,9 +98,32 @@ export interface Category {
   id: string;
   name: string;
   order: number;
+  isPublished: boolean;
+  isPublic: boolean;
+  allowedUsers?: User[]; // List of users with access (if !isPublic)
+  _count?: {
+    subjects: number;
+    allowedUsers: number;
+  };
   subjects?: Subject[]; // Optional, will be included when fetching with `include`
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateCategoryPayload {
+  name: string;
+  order: number;
+  isPublished?: boolean;
+  isPublic?: boolean;
+  allowedUserIds?: string[];
+}
+
+export interface UpdateCategoryPayload {
+  name?: string;
+  order?: number;
+  isPublished?: boolean;
+  isPublic?: boolean;
+  allowedUserIds?: string[];
 }
 
 export interface Subject {
@@ -94,6 +133,7 @@ export interface Subject {
   categoryId: string;
   category?: Category; // Optional, will be included when fetching with `include`
   lessons?: Lesson[]; // Optional
+  learningObjectives?: LearningObjective[]; // Optional, for questions page
   createdAt: string;
   updatedAt: string;
 }
@@ -117,6 +157,76 @@ export interface Material {
   lesson?: Lesson; // Optional
   createdAt: string;
   updatedAt: string;
+}
+
+// =================================================================
+// Soru Bankası ve Test Sistemi Arayüzleri
+// =================================================================
+
+export interface LearningObjective {
+  id: string;
+  name: string;
+  order: number;
+  subjectId: string;
+  subject?: Subject;
+  questions?: Question[];
+}
+
+export interface Question {
+  id: string;
+  imageUrl: string;
+  options: Record<string, string>; // JSON'dan Record'a
+  correctAnswer: string;
+  difficulty: number;
+  learningObjectiveId: string;
+  learningObjective?: LearningObjective;
+  tests?: TestQuestion[];
+}
+
+export interface Test {
+  id: string;
+  name: string;
+  description?: string | null;
+  createdById: string;
+  createdBy?: any; // User tipini şimdilik any olarak bırakabiliriz
+  questions?: TestQuestion[];
+  assignments?: TestAssignment[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TestQuestion {
+  testId: string;
+  questionId: string;
+  order: number;
+  question?: Question; // İlişkili soruyu getirmek için
+}
+
+export enum TestStatus {
+  ASSIGNED = "ASSIGNED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export interface TestAssignment {
+  id: string;
+  testId: string;
+  studentId: string;
+  status: TestStatus;
+  score?: number | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  studentAnswers?: StudentAnswer[];
+  test?: Test; // İlişkili testi getirmek için
+}
+
+export interface StudentAnswer {
+  id: string;
+  testAssignmentId: string;
+  questionId: string;
+  selectedAnswer: string;
+  isCorrect?: boolean | null;
 }
 
 class ApiClient {
@@ -290,6 +400,31 @@ class ApiClient {
     return response;
   }
 
+  // User endpoints
+  async getUsers(role?: string): Promise<ApiResponse<User[]>> {
+    const params = new URLSearchParams();
+    if (role && role !== "ALL") params.append("role", role);
+    return this.request<User[]>(`/users?${params.toString()}`, { method: "GET" });
+  }
+
+  async createUser(data: CreateUserPayload): Promise<ApiResponse<User>> {
+    return this.request<User>("/users", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateUser(id: string, data: UpdateUserPayload): Promise<ApiResponse<User>> {
+    return this.request<User>(`/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteUser(id: string): Promise<ApiResponse<null>> {
+    return this.request<null>(`/users/${id}`, { method: "DELETE" });
+  }
+
   // Site Settings endpoints
   async getSiteSettings(): Promise<ApiResponse<SiteSettings>> {
     return this.request<SiteSettings>("/site-settings", {
@@ -318,10 +453,7 @@ class ApiClient {
   }
 
   // Category endpoints
-  async createCategory(data: {
-    name: string;
-    order: number;
-  }): Promise<ApiResponse<Category>> {
+  async createCategory(data: CreateCategoryPayload): Promise<ApiResponse<Category>> {
     return this.request<Category>("/categories", {
       method: "POST",
       body: JSON.stringify(data),
@@ -335,7 +467,7 @@ class ApiClient {
   }
   async updateCategory(
     id: string,
-    data: Partial<Category>
+    data: UpdateCategoryPayload
   ): Promise<ApiResponse<Category>> {
     return this.request<Category>(`/categories/${id}`, {
       method: "PUT",
@@ -455,6 +587,118 @@ class ApiClient {
   }
   async deleteMaterial(id: string): Promise<ApiResponse<null>> {
     return this.request<null>(`/materials/${id}`, { method: "DELETE" });
+  }
+
+  // LearningObjective endpoints
+  async createLearningObjective(data: {
+    name: string;
+    order: number;
+    subjectId: string;
+  }): Promise<ApiResponse<LearningObjective>> {
+    return this.request<LearningObjective>("/learning-objectives", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+  async getAllLearningObjectives(): Promise<ApiResponse<LearningObjective[]>> {
+    return this.request<LearningObjective[]>("/learning-objectives", {
+      method: "GET",
+    });
+  }
+  async getLearningObjectiveById(
+    id: string
+  ): Promise<ApiResponse<LearningObjective>> {
+    return this.request<LearningObjective>(`/learning-objectives/${id}`, {
+      method: "GET",
+    });
+  }
+  async updateLearningObjective(
+    id: string,
+    data: Partial<LearningObjective>
+  ): Promise<ApiResponse<LearningObjective>> {
+    return this.request<LearningObjective>(`/learning-objectives/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+  async deleteLearningObjective(id: string): Promise<ApiResponse<null>> {
+    return this.request<null>(`/learning-objectives/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Question endpoints
+  async createQuestion(data: {
+    imageUrl: string;
+    options: object;
+    correctAnswer: string;
+    difficulty: number;
+    learningObjectiveId: string;
+  }): Promise<ApiResponse<Question>> {
+    return this.request<Question>("/questions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+  async getAllQuestions(): Promise<ApiResponse<Question[]>> {
+    return this.request<Question[]>("/questions", { method: "GET" });
+  }
+  async getQuestionsByLearningObjectiveId(
+    learningObjectiveId: string
+  ): Promise<ApiResponse<Question[]>> {
+    return this.request<Question[]>(
+      `/questions/learning-objective/${learningObjectiveId}`,
+      { method: "GET" }
+    );
+  }
+  async getQuestionById(id: string): Promise<ApiResponse<Question>> {
+    return this.request<Question>(`/questions/${id}`, { method: "GET" });
+  }
+  async updateQuestion(
+    id: string,
+    data: Partial<Question>
+  ): Promise<ApiResponse<Question>> {
+    return this.request<Question>(`/questions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+  async deleteQuestion(id: string): Promise<ApiResponse<null>> {
+    return this.request<null>(`/questions/${id}`, { method: "DELETE" });
+  }
+
+  // Test endpoints
+  async createTest(data: {
+    name: string;
+    description?: string;
+    questions: { questionId: string; order: number }[]; // Changed from questionIds to questions
+  }): Promise<ApiResponse<Test>> {
+    return this.request<Test>("/tests", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+  async getAllTests(): Promise<ApiResponse<Test[]>> {
+    return this.request<Test[]>("/tests", { method: "GET" });
+  }
+  async getTestById(id: string): Promise<ApiResponse<Test>> {
+    return this.request<Test>(`/tests/${id}`, { method: "GET" });
+  }
+  async updateTest(
+    id: string,
+    data: Partial<{
+      name: string;
+      description?: string;
+      questions: { questionId: string; order: number }[]; // Changed from questionIds to questions
+    }>
+  ): Promise<ApiResponse<Test>> {
+    return this.request<Test>(`/tests/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+  async deleteTest(id: string): Promise<ApiResponse<null>> {
+    return this.request<null>(`/tests/${id}`, { method: "DELETE" });
   }
 }
 

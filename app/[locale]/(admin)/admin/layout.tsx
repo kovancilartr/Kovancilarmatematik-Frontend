@@ -6,6 +6,8 @@ import { useAuth } from "@/components/providers/auth-context-provider";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import GlobalLoading from "@/components/layout/GlobalLoading";
 
+import { toast } from "react-hot-toast";
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -17,9 +19,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const locale = params.locale || "tr";
 
   useEffect(() => {
-    // If auth is not loading and user is not an authenticated admin, redirect to homepage
-    if (!isLoading && (!isAuthenticated || user?.role !== "ADMIN")) {
-      router.push(`/${locale}/login`);
+    if (!isLoading) {
+      // If not authenticated, go to login
+      if (!isAuthenticated) {
+        router.push(`/${locale}/login`);
+        return;
+      }
+
+      // If authenticated but not admin, go to home with warning
+      if (user?.role !== "ADMIN") {
+        toast.error("Bu sayfaya erişim yetkiniz bulunmuyor.");
+        router.push(`/${locale}`);
+      }
     }
   }, [isLoading, isAuthenticated, user, router, locale]);
 

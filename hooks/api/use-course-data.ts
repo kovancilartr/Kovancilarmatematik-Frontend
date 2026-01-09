@@ -22,7 +22,15 @@ const fetchCourseData = async (categoryId: string): Promise<CourseData> => {
   ]);
 
   if (!categoryResponse.success || !categoryResponse.data) {
-    throw new Error(categoryResponse.error?.message || 'Failed to fetch course details.');
+    const error = new Error(categoryResponse.error?.message || 'Failed to fetch course details.');
+    // Attach status for QueryProvider
+    if (categoryResponse.error?.code === 'FORBIDDEN') {
+      (error as any).status = 403;
+    }
+    if (categoryResponse.error?.code === 'NOT_FOUND') {
+      (error as any).status = 404;
+    }
+    throw error;
   }
 
   if (!subjectsResponse.success || !subjectsResponse.data) {
@@ -32,7 +40,7 @@ const fetchCourseData = async (categoryId: string): Promise<CourseData> => {
   const subjects = subjectsResponse.data;
 
   // 3. Fetch lessons for all subjects in parallel
-  const lessonPromises = subjects.map(subject => 
+  const lessonPromises = subjects.map(subject =>
     apiClient.getLessonsBySubjectId(subject.id)
   );
 

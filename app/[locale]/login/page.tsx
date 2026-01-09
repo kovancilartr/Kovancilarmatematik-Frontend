@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-context-provider";
 import { useForm } from "react-hook-form";
@@ -42,9 +42,15 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale || "tr";
-  const { login } = useAuth(); // Assuming useAuth provides a login function
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { login, isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push(`/${locale}`);
+    }
+  }, [isLoading, isAuthenticated, router, locale]);
 
   const {
     register,
@@ -228,11 +234,10 @@ export default function AdminLoginPage() {
                 id="email"
                 type="email"
                 placeholder="ornek@email.com"
-                className={`h-12 ${
-                  errors.email
-                    ? "border-red-300 focus:border-red-500"
-                    : "border-gray-300 dark:border-gray-600"
-                } transition-colors`}
+                className={`h-12 ${errors.email
+                  ? "border-red-300 focus:border-red-500"
+                  : "border-gray-300 dark:border-gray-600"
+                  } transition-colors`}
                 {...register("email")}
               />
               {errors.email && (
@@ -263,11 +268,10 @@ export default function AdminLoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Şifrenizi girin"
-                  className={`h-12 pr-12 ${
-                    errors.password
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  } transition-colors`}
+                  className={`h-12 pr-12 ${errors.password
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300 dark:border-gray-600"
+                    } transition-colors`}
                   {...register("password")}
                 />
                 <button

@@ -7,6 +7,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiClient, LoginRequest, LoginResponse } from "../../lib/api";
 
 interface User {
@@ -40,13 +41,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient(); // Get query client
 
   const isAuthenticated = !!user && !!accessToken;
 
   // Synchronize apiClient with the accessToken from state
   useEffect(() => {
     apiClient.setAccessToken(accessToken);
-  }, [accessToken]);
+    if (accessToken) {
+      // Invalidate all queries when token is set/changed to ensure we fetch fresh data with auth
+      queryClient.invalidateQueries();
+    }
+  }, [accessToken, queryClient]);
 
   const clearAuthState = useCallback(() => {
     try {
@@ -58,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       document.cookie =
         "kovancilar_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
 
+      apiClient.setAccessToken(null); // Sync clear
       setAccessToken(null);
       setUser(null);
     } catch (error) {
@@ -109,13 +116,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedUser = localStorage.getItem(USER_KEY);
 
         if (storedToken && storedUser) {
+          // CRITICAL: Set token on apiClient IMMEDIATELY before setting state/loading
+          // This ensures useQuery in children sees the token on first render
+          apiClient.setAccessToken(storedToken);
+
           setAccessToken(storedToken);
           setUser(JSON.parse(storedUser));
 
           // Also set cookie for middleware
-          document.cookie = `kovancilar_access_token=${storedToken}; path=/; max-age=${
-            15 * 60
-          }`; // 15 minutes
+          document.cookie = `kovancilar_access_token=${storedToken}; path=/; max-age=${15 * 60
+            }`; // 15 minutes
         }
       } catch (error) {
         console.error("Failed to load auth state:", error);
@@ -135,9 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(USER_KEY, JSON.stringify(loginResponse.user));
 
       // Set cookie for middleware
-      document.cookie = `kovancilar_access_token=${
-        loginResponse.accessToken
-      }; path=/; max-age=${15 * 60}`; // 15 minutes
+      document.cookie = `kovancilar_access_token=${loginResponse.accessToken
+        }; path=/; max-age=${15 * 60}`; // 15 minutes
 
       setAccessToken(loginResponse.accessToken);
       setUser(loginResponse.user);
@@ -197,6 +206,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     refreshToken,
   };
+
+  if (isLoading) {
+    return null; // Or a loading spinner
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

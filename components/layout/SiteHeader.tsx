@@ -17,6 +17,9 @@ import MobileMenu from "./MobileMenu";
 import { Dict } from "@/constans/types";
 import { useAuth } from "../providers/auth-context-provider";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { UserProfileDropdown } from "./UserProfileDropdown";
+import { Button } from "@/components/ui/button";
+import { LogIn } from "lucide-react";
 
 interface SiteHeaderProps {
   locale: Locale;
@@ -27,7 +30,7 @@ const SiteHeader = ({ locale, dict }: SiteHeaderProps) => {
   const router = useRouter();
   const { user } = useAuth();
 
-  const isAuthenticated = !!user && !!user.id;
+  // const isAuthenticated = !!user && !!user.id; // useAuth already provides this
 
   const navItems = [
     { label: dict.nav.home, href: "" },
@@ -35,9 +38,7 @@ const SiteHeader = ({ locale, dict }: SiteHeaderProps) => {
     { label: dict.nav.archive, href: "archive" },
     { label: dict.nav.tags, href: "tags" },
     { label: dict.nav.about, href: "about" },
-    isAuthenticated
-      ? { label: dict.nav.dashboard, href: "admin/dashboard" }
-      : { label: dict.nav.login, href: "login" },
+    // Removed Dashboard/Login from nav items to move to action area
   ];
   const buildHref = (path: string) => `/${locale}${path ? `/${path}` : ""}`;
 
@@ -76,11 +77,10 @@ const SiteHeader = ({ locale, dict }: SiteHeaderProps) => {
       className={`
       sticky top-0 z-50 
       backdrop-blur-xl border-b transition-all duration-300
-      ${
-        scrolled
+      ${scrolled
           ? "bg-background/80 border-border/50 shadow-lg py-3"
           : "bg-background/40 border-transparent py-5"
-      }
+        }
     `}
     >
       <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
@@ -106,8 +106,8 @@ const SiteHeader = ({ locale, dict }: SiteHeaderProps) => {
                 key={item.href || idx}
                 className={[
                   "rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200",
-                  active 
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105" 
+                  active
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                 ].join(" ")}
               >
@@ -135,6 +135,23 @@ const SiteHeader = ({ locale, dict }: SiteHeaderProps) => {
               </SelectGroup>
             </SelectContent>
           </Select>
+
+          <div className="h-8 w-px bg-border/50 hidden md:block" />
+
+          {user ? (
+            <UserProfileDropdown />
+          ) : (
+            <Button
+              size="sm"
+              className="gap-2 hidden md:flex rounded-full px-5"
+              asChild
+            >
+              <Link href={buildHref("login")}>
+                <LogIn className="w-4 h-4" />
+                {dict.nav?.login || "Giriş Yap"}
+              </Link>
+            </Button>
+          )}
 
           <div className="flex lg:hidden">
             <MobileMenu dict={dict} locale={locale} />
